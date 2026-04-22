@@ -4,7 +4,7 @@ import { history } from "./history.js";
 /**
  * Логика добавления полигона
  * 
- * @param {Object} polygon - { id: number, points: [{x: number, y: number}], color: string }
+ * @param {{ id: number, points: [{x: number, y: number}], color: string }} polygon
  */
 export const addPolygon = (polygon) => {
     history.execute({
@@ -23,7 +23,7 @@ export const addPolygon = (polygon) => {
 /**
  * Логика выбора полигона
  * 
- * @param {Object} polygon - { id: number, points: [{x: number, y: number}], color: string }
+ * @param {{ id: number, points: [{x: number, y: number}], color: string }} polygon
  */
 export const selectPolygon = (polygon) => {
     const previousSelectedId = state.selectedId;
@@ -44,7 +44,7 @@ export const selectPolygon = (polygon) => {
 /**
  * Логика удаления выбранного полигона
  * 
- * @param {Object} polygon - { id: number, points: [{x: number, y: number}], color: string }
+ * @param {{ id: number, points: [{x: number, y: number}], color: string }} polygon
  */
 export const deleteSelectedPolygon = (polygon) => {
     history.execute({
@@ -64,7 +64,7 @@ export const deleteSelectedPolygon = (polygon) => {
 /**
  * Логика удаления всех полигонов
  * 
- * @param {Object} stateBeforeDelete - { polygons: [{ id: number, points: [{x: number, y: number}] }], selectedId: number }
+ * @param {{ polygons: [{ id: number, points: [{x: number, y: number}] }], selectedId: number }} stateBeforeDelete
  */
 export const deletePolygons = (stateBeforeDelete) => {
     history.execute({

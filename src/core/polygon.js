@@ -4,7 +4,7 @@ import { clampPointToCanvas, rand, randomColor } from "../utils/helpers.js";
  * 
  * @param {number} canvasWidth - Ширина канваса
  * @param {number} canvasHeight - Высота канваса
- * @returns {Object} - Полигон { id: number, points: [{x: number, y: number}], color: string }
+ * @returns {{ id: number, points: [{x: number, y: number}], color: string }} - Полигон
  */
 export const generatePolygon = (canvasWidth, canvasHeight) => {
   const pointsCount = rand(3, 7);
