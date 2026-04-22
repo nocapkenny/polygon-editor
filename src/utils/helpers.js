@@ -77,3 +77,119 @@ export const clampPointToCanvas = (canvasWidth, canvasHeight, point) => {
     y: clamp(point.y, 0, canvasHeight),
   };
 };
+
+/**
+ * Проверяет, находится ли точка внутри полигона.
+ *
+ * @param {{ x: number, y: number }} point
+ * @param {Array<{ x: number, y: number }>} polygonPoints
+ * @returns {boolean}
+ */
+export const isPointInsidePolygon = (point, polygonPoints) => {
+  let isInside = false;
+
+  for (
+    let currentIndex = 0, previousIndex = polygonPoints.length - 1;
+    currentIndex < polygonPoints.length;
+    previousIndex = currentIndex++
+  ) {
+    const currentPoint = polygonPoints[currentIndex];
+    const previousPoint = polygonPoints[previousIndex];
+    const intersects =
+      currentPoint.y > point.y !== previousPoint.y > point.y &&
+      point.x <
+        ((previousPoint.x - currentPoint.x) * (point.y - currentPoint.y)) /
+          (previousPoint.y - currentPoint.y) +
+          currentPoint.x;
+
+    if (intersects) {
+      isInside = !isInside;
+    }
+  }
+
+  return isInside;
+};
+
+/**
+ * Проверяет пересечение двух отрезков.
+ *
+ * @param {{ x: number, y: number }} a
+ * @param {{ x: number, y: number }} b
+ * @param {{ x: number, y: number }} c
+ * @param {{ x: number, y: number }} d
+ * @returns {boolean}
+ */
+export const doSegmentsIntersect = (a, b, c, d) => {
+  const getOrientation = (p1, p2, p3) => {
+    const value =
+      (p2.y - p1.y) * (p3.x - p2.x) - (p2.x - p1.x) * (p3.y - p2.y);
+
+    if (Math.abs(value) < 0.000001) {
+      return 0;
+    }
+
+    return value > 0 ? 1 : 2;
+  };
+
+  const isPointOnSegment = (p1, p2, p3) => {
+    return (
+      p2.x <= Math.max(p1.x, p3.x) &&
+      p2.x >= Math.min(p1.x, p3.x) &&
+      p2.y <= Math.max(p1.y, p3.y) &&
+      p2.y >= Math.min(p1.y, p3.y)
+    );
+  };
+
+  const firstOrientation = getOrientation(a, b, c);
+  const secondOrientation = getOrientation(a, b, d);
+  const thirdOrientation = getOrientation(c, d, a);
+  const fourthOrientation = getOrientation(c, d, b);
+
+  if (
+    firstOrientation !== secondOrientation &&
+    thirdOrientation !== fourthOrientation
+  ) {
+    return true;
+  }
+
+  if (firstOrientation === 0 && isPointOnSegment(a, c, b)) return true;
+  if (secondOrientation === 0 && isPointOnSegment(a, d, b)) return true;
+  if (thirdOrientation === 0 && isPointOnSegment(c, a, d)) return true;
+  if (fourthOrientation === 0 && isPointOnSegment(c, b, d)) return true;
+
+  return false;
+};
+
+/**
+ * Проверяет наложение двух полигонов.
+ *
+ * @param {Array<{ x: number, y: number }>} firstPolygonPoints
+ * @param {Array<{ x: number, y: number }>} secondPolygonPoints
+ * @returns {boolean}
+ */
+export const doPolygonsOverlap = (firstPolygonPoints, secondPolygonPoints) => {
+  for (let firstIndex = 0; firstIndex < firstPolygonPoints.length; firstIndex++) {
+    const firstStart = firstPolygonPoints[firstIndex];
+    const firstEnd =
+      firstPolygonPoints[(firstIndex + 1) % firstPolygonPoints.length];
+
+    for (
+      let secondIndex = 0;
+      secondIndex < secondPolygonPoints.length;
+      secondIndex++
+    ) {
+      const secondStart = secondPolygonPoints[secondIndex];
+      const secondEnd =
+        secondPolygonPoints[(secondIndex + 1) % secondPolygonPoints.length];
+
+      if (doSegmentsIntersect(firstStart, firstEnd, secondStart, secondEnd)) {
+        return true;
+      }
+    }
+  }
+
+  return (
+    isPointInsidePolygon(firstPolygonPoints[0], secondPolygonPoints) ||
+    isPointInsidePolygon(secondPolygonPoints[0], firstPolygonPoints)
+  );
+};

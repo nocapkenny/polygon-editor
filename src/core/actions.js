@@ -29,6 +29,10 @@ export const selectPolygon = (polygon) => {
     const previousSelectedId = state.selectedId;
     const nextSelectedId = polygon ? polygon.id : null;
 
+    if (previousSelectedId === nextSelectedId) {
+        return;
+    }
+
     history.execute({
         redo: () => {
             state.selectedId = nextSelectedId;
@@ -79,4 +83,32 @@ export const deletePolygons = (stateBeforeDelete) => {
             state.notify();
         }
     })
+}
+
+/**
+ * Сохраняет итоговое перемещение полигона в историю.
+ *
+ * @param {number|string} polygonId
+ * @param {Array<{ x: number, y: number }>} previousPoints
+ * @param {Array<{ x: number, y: number }>} nextPoints
+ */
+export const commitPolygonMove = (polygonId, previousPoints, nextPoints) => {
+    history.execute({
+        redo: () => {
+            state.polygons = state.polygons.map((polygon) =>
+                polygon.id === polygonId
+                    ? { ...polygon, points: nextPoints.map((point) => ({ ...point })) }
+                    : polygon
+            );
+            state.notify();
+        },
+        undo: () => {
+            state.polygons = state.polygons.map((polygon) =>
+                polygon.id === polygonId
+                    ? { ...polygon, points: previousPoints.map((point) => ({ ...point })) }
+                    : polygon
+            );
+            state.notify();
+        }
+    });
 }

@@ -26,7 +26,14 @@ class ToolBar extends HTMLElement {
         return;
       }
 
-      const polygon = generatePolygon(canvas.width, canvas.height);
+      const polygon = generatePolygon(canvas.width, canvas.height, state.polygons);
+
+      if(!polygon){
+        modalState.message = "На холсте не осталось места для нового полигона";
+        modalState.isOpen = true;
+        state.notify();
+        return;
+      }
 
       addPolygon(polygon);
     })
