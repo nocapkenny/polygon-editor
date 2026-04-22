@@ -1,5 +1,11 @@
-import { rand, randomColor } from "../utils/helpers.js";
+import { clampPointToCanvas, rand, randomColor } from "../utils/helpers.js";
 
+/**
+ * 
+ * @param {number} canvasWidth - Ширина канваса
+ * @param {number} canvasHeight - Высота канваса
+ * @returns {Object} - Полигон { id: number, points: [{x: number, y: number}], color: string }
+ */
 export const generatePolygon = (canvasWidth, canvasHeight) => {
   const pointsCount = rand(3, 7);
 
@@ -13,15 +19,15 @@ export const generatePolygon = (canvasWidth, canvasHeight) => {
     const angle = (Math.PI * 2 * i) / pointsCount;
     const radius = rand(30, 70);
 
-    points.push({
+    points.push(clampPointToCanvas(canvasWidth, canvasHeight, {
       x: cx + Math.cos(angle) * radius,
       y: cy + Math.sin(angle) * radius,
-    });
+    }));
   }
 
   return {
     id: Date.now().toString(),
     points,
     color: randomColor(),
-  }
+  };
 };
