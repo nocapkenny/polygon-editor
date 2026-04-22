@@ -1,5 +1,6 @@
 import { render } from "../core/renderer.js";
 import { state } from "../core/state.js";
+import { selectPolygon } from "../core/actions.js";
 
 class CanvasArea extends HTMLElement {
   connectedCallback() {
@@ -9,15 +10,40 @@ class CanvasArea extends HTMLElement {
 
     this.resize();
     window.addEventListener("resize", () => this.resize());
+    this.canvas.addEventListener("click", (e) => this.handleClick(e));
 
     this.loop();
   }
 
-  resize() {
-    const rect = this.getBoundingClientRect();
+  handleClick(e) {
+    const rect = this.canvas.getBoundingClientRect();
+    const scaleX = this.canvas.width / rect.width;
+    const scaleY = this.canvas.height / rect.height;
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
 
-    this.canvas.width = rect.width;
-    this.canvas.height = rect.height;
+    const clickedPolygon = [...state.polygons]
+      .reverse()
+      .find((polygon) => {
+        const path = new Path2D();
+
+        polygon.points.forEach((p, i) => {
+          if (i === 0) path.moveTo(p.x, p.y);
+          else path.lineTo(p.x, p.y);
+        });
+
+        path.closePath();
+        return this.ctx.isPointInPath(path, x, y);
+      });
+    selectPolygon(clickedPolygon ?? null);
+  }
+
+  resize() {
+    const width = this.canvas.clientWidth;
+    const height = this.canvas.clientHeight;
+
+    this.canvas.width = width;
+    this.canvas.height = height;
   }
 
   loop() {
