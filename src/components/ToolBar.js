@@ -3,6 +3,7 @@ import { addPolygon, deleteSelectedPolygon, deletePolygons } from "../core/actio
 import { history } from "../core/history.js";
 import { state } from "../core/state.js";
 import { keyHandler } from "../utils/helpers.js";
+import { modalState } from "../core/modal.js";
 
 class ToolBar extends HTMLElement {
   connectedCallback() {
@@ -31,6 +32,12 @@ class ToolBar extends HTMLElement {
     })
 
     this.querySelector("#deleteSelected").addEventListener('click', () => {
+      if(!state.selectedId){
+        modalState.message = "Выберите полигон для удаления";
+        modalState.isOpen = true;
+        state.notify();
+        return;
+      }
       const polygon = state.polygons.find(p => p.id === state.selectedId);
       deleteSelectedPolygon(polygon);
     })

@@ -5,6 +5,7 @@ class AppRoot extends HTMLElement {
                 <info-panel></info-panel>
                 <canvas-area></canvas-area>
                 <tool-bar></tool-bar>
+                <modal-component>Выберите полигон</modal-component>
             </div>
         `;
   }
