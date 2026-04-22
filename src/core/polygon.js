@@ -26,7 +26,7 @@ export const generatePolygon = (canvasWidth, canvasHeight) => {
   }
 
   return {
-    id: Date.now().toString(),
+    id: Date.now(),
     points,
     color: randomColor(),
   };
