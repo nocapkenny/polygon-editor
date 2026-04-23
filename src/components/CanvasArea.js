@@ -24,6 +24,8 @@ class CanvasArea extends HTMLElement {
   }
 
   handlePointerDown(e) {
+    e.preventDefault();
+
     const { x, y } = this.getCanvasPoint(e);
     const polygon = this.getPolygonAt(x, y);
 
@@ -48,6 +50,8 @@ class CanvasArea extends HTMLElement {
     if (!this.dragState || this.dragState.pointerId !== e.pointerId) {
       return;
     }
+
+    e.preventDefault();
 
     const { x, y } = this.getCanvasPoint(e);
     const dx = x - this.dragState.startX;
@@ -89,6 +93,8 @@ class CanvasArea extends HTMLElement {
     if (!this.dragState) {
       return;
     }
+
+    e.preventDefault();
 
     if (e?.pointerId !== undefined && this.dragState.pointerId === e.pointerId) {
       this.canvas.releasePointerCapture(e.pointerId);
