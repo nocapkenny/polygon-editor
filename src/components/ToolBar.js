@@ -1,9 +1,15 @@
 import { generatePolygon } from "../core/polygon.js";
-import { addPolygon, deleteSelectedPolygon, deletePolygons } from "../core/actions.js";
+import {
+  addPolygon,
+  deleteSelectedPolygon,
+  deletePolygons,
+  changePolygonColor,
+} from "../core/actions.js";
 import { history } from "../core/history.js";
 import { state } from "../core/state.js";
-import { keyHandler } from "../utils/helpers.js";
+import { keyHandler, hexToHsl } from "../utils/helpers.js";
 import { modalState } from "../core/modal.js";
+import { importState, exportState } from "../core/save.js";
 
 class ToolBar extends HTMLElement {
   connectedCallback() {
@@ -15,20 +21,43 @@ class ToolBar extends HTMLElement {
                   <button title="Удалить все" id="delete" type="button" class="btn btn-icon"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M10 11V17" stroke="#F2F2F2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M14 11V17" stroke="#F2F2F2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M4 7H20" stroke="#F2F2F2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M6 7H12H18V18C18 19.6569 16.6569 21 15 21H9C7.34315 21 6 19.6569 6 18V7Z" stroke="#F2F2F2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M9 5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5V7H9V5Z" stroke="#F2F2F2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg></button>
                   <button title="Отменить" id="undo" type="button" class="btn btn-icon"><svg style="transform: scaleX(-1);" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M20 7H9.00001C7.13077 7 6.19615 7 5.5 7.40193C5.04395 7.66523 4.66524 8.04394 4.40193 8.49999C4 9.19615 4 10.1308 4 12C4 13.8692 4 14.8038 4.40192 15.5C4.66523 15.9561 5.04394 16.3348 5.5 16.5981C6.19615 17 7.13077 17 9 17H16M20 7L17 4M20 7L17 10" stroke="#F2F2F2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg></button>
                   <button title="Повторить" id="redo" type="button" class="btn btn-icon"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M20 7H9.00001C7.13077 7 6.19615 7 5.5 7.40193C5.04395 7.66523 4.66524 8.04394 4.40193 8.49999C4 9.19615 4 10.1308 4 12C4 13.8692 4 14.8038 4.40192 15.5C4.66523 15.9561 5.04394 16.3348 5.5 16.5981C6.19615 17 7.13077 17 9 17H16M20 7L17 4M20 7L17 10" stroke="#F2F2F2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg></button>
+                  <div class="divider"></div>
+                  <button title="Импортировать сцену" id="import" type="button" class="btn">Импорт</button>
+                  <button title="Экспортировать сцену" id="export" type="button" class="btn">Экспорт</button>
+                  <div class="divider"></div>
+                  <div class="color-picker">
+                    <label class="text" for="color-picker">Изменить цвет</label>
+                    <input type="color" id="color-picker" />
+                  </div>
                 </div>
             </div>
         `;
 
-    this.querySelector("#add").addEventListener('click', () => {
-      const canvas = document.querySelector('#canvas');
-      if(!canvas){
-        console.error('Канвас не найден');
+    // Handlers
+    this.querySelector("#color-picker").addEventListener("blur", (e) => {
+      if (!state.selectedId) {
+        modalState.message = "Выберите полигон для смены цвета";
+        modalState.isOpen = true;
+        state.notify();
+        return;
+      }
+      const hslColor = hexToHsl(e.target.value);
+      changePolygonColor(state.selectedId, hslColor);
+    });
+    this.querySelector("#add").addEventListener("click", () => {
+      const canvas = document.querySelector("#canvas");
+      if (!canvas) {
+        console.error("Канвас не найден");
         return;
       }
 
-      const polygon = generatePolygon(canvas.width, canvas.height, state.polygons);
+      const polygon = generatePolygon(
+        canvas.width,
+        canvas.height,
+        state.polygons,
+      );
 
-      if(!polygon){
+      if (!polygon) {
         modalState.message = "На холсте не осталось места для нового полигона";
         modalState.isOpen = true;
         state.notify();
@@ -36,27 +65,29 @@ class ToolBar extends HTMLElement {
       }
 
       addPolygon(polygon);
-    })
-
-    this.querySelector("#deleteSelected").addEventListener('click', () => {
-      if(!state.selectedId){
-        modalState.message = "Выберите полигон для удаления";
-        modalState.isOpen = true;
-        state.notify();
-        return;
-      }
-      const polygon = state.polygons.find(p => p.id === state.selectedId);
-      deleteSelectedPolygon(polygon);
-    })
-
-    this.querySelector("#delete").addEventListener('click', () => {
-      const stateBeforeDelete = {...state};
+    });
+    this.querySelector("#deleteSelected").addEventListener("click", () =>
+      this.handleDelete(),
+    );
+    this.querySelector("#delete").addEventListener("click", () => {
+      const stateBeforeDelete = { ...state };
       deletePolygons(stateBeforeDelete);
-    })
-
-    this.querySelector('#undo').addEventListener('click', () => history.undo());
-    this.querySelector('#redo').addEventListener('click', () => history.redo());
-    keyHandler(history);
+    });
+    this.querySelector("#undo").addEventListener("click", () => history.undo());
+    this.querySelector("#redo").addEventListener("click", () => history.redo());
+    this.querySelector("#import").addEventListener("click", importState);
+    this.querySelector("#export").addEventListener("click", exportState);
+    keyHandler(history, () => this.handleDelete());
+  }
+  handleDelete() {
+    if (!state.selectedId) {
+      modalState.message = "Выберите полигон для удаления";
+      modalState.isOpen = true;
+      state.notify();
+      return;
+    }
+    const polygon = state.polygons.find((p) => p.id === state.selectedId);
+    deleteSelectedPolygon(polygon);
   }
 }
 

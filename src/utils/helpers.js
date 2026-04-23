@@ -48,9 +48,10 @@ export const randomColor = () => {
  * Подписывает обработчик горячих клавиш для undo/redo.
  *
  * @param {{ undo: Function, redo: Function }} history - Объект с методами истории изменений.
+ * @param {Function} handleDelete - Обработчик удаления полигона.
  * @returns {void}
  */
-export const keyHandler = (history) => {
+export const keyHandler = (history, handleDelete) => {
   document.addEventListener("keydown", (e) => {
     if (e.key === "z" && e.ctrlKey) history.undo();
     if (e.key === "y" && e.ctrlKey) history.redo();
@@ -60,6 +61,7 @@ export const keyHandler = (history) => {
     if (e.key === "н" && e.ctrlKey) history.redo();
     if (e.key === "я" && e.ctrlKey) history.undo();
     if (e.key === "Я" && e.ctrlKey) history.undo();
+    if (e.key === "Delete") handleDelete();
   });
 };
 
@@ -121,8 +123,7 @@ export const isPointInsidePolygon = (point, polygonPoints) => {
  */
 export const doSegmentsIntersect = (a, b, c, d) => {
   const getOrientation = (p1, p2, p3) => {
-    const value =
-      (p2.y - p1.y) * (p3.x - p2.x) - (p2.x - p1.x) * (p3.y - p2.y);
+    const value = (p2.y - p1.y) * (p3.x - p2.x) - (p2.x - p1.x) * (p3.y - p2.y);
 
     if (Math.abs(value) < 0.000001) {
       return 0;
@@ -168,7 +169,11 @@ export const doSegmentsIntersect = (a, b, c, d) => {
  * @returns {boolean}
  */
 export const doPolygonsOverlap = (firstPolygonPoints, secondPolygonPoints) => {
-  for (let firstIndex = 0; firstIndex < firstPolygonPoints.length; firstIndex++) {
+  for (
+    let firstIndex = 0;
+    firstIndex < firstPolygonPoints.length;
+    firstIndex++
+  ) {
     const firstStart = firstPolygonPoints[firstIndex];
     const firstEnd =
       firstPolygonPoints[(firstIndex + 1) % firstPolygonPoints.length];
@@ -192,4 +197,55 @@ export const doPolygonsOverlap = (firstPolygonPoints, secondPolygonPoints) => {
     isPointInsidePolygon(firstPolygonPoints[0], secondPolygonPoints) ||
     isPointInsidePolygon(secondPolygonPoints[0], firstPolygonPoints)
   );
+};
+
+/**
+ * Преобразует HEX в HSL.
+ *
+ * @param {string} hex - Цвет в формате HEX
+ * @returns {string} - Цвет в формате HSL
+ * */
+export const hexToHsl = (hex) => {
+  // 1. Преобразование HEX в RGB
+  let r = 0,
+    g = 0,
+    b = 0;
+  if (hex.length === 4) {
+    r = "0x" + hex[1] + hex[1];
+    g = "0x" + hex[2] + hex[2];
+    b = "0x" + hex[3] + hex[3];
+  } else if (hex.length === 7) {
+    r = "0x" + hex[1] + hex[2];
+    g = "0x" + hex[3] + hex[4];
+    b = "0x" + hex[5] + hex[6];
+  }
+
+  // 2. Нормализация RGB (приведение к диапазону 0-1)
+  r /= 255;
+  g /= 255;
+  b /= 255;
+  let cmin = Math.min(r, g, b),
+    cmax = Math.max(r, g, b),
+    delta = cmax - cmin,
+    h = 0,
+    s = 0,
+    l = 0;
+
+  // 3. Расчет Hue (Оттенок)
+  if (delta === 0) h = 0;
+  else if (cmax === r) h = ((g - b) / delta) % 6;
+  else if (cmax === g) h = (b - r) / delta + 2;
+  else h = (r - g) / delta + 4;
+  h = Math.round(h * 60);
+  if (h < 0) h += 360;
+
+  // 4. Расчет Lightness (Яркость)
+  l = (cmax + cmin) / 2;
+
+  // 5. Расчет Saturation (Насыщенность)
+  s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+  s = +(s * 100).toFixed(1);
+  l = +(l * 100).toFixed(1);
+
+  return "hsl(" + h + ", " + s + "%, " + l + "%)";
 };

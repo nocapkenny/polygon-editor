@@ -112,3 +112,29 @@ export const commitPolygonMove = (polygonId, previousPoints, nextPoints) => {
         }
     });
 }
+
+/**
+ * 
+ * @param {number|string} polygonId 
+ * @param {string} color - Цвет в формате HSL
+ */
+export const changePolygonColor = (polygonId, color) => {
+    history.execute({
+        redo: () => {
+            state.polygons = state.polygons.map((polygon) =>
+                polygon.id === polygonId
+                    ? { ...polygon, color }
+                    : polygon
+            );
+            state.notify();
+        },
+        undo: () => {
+            state.polygons = state.polygons.map((polygon) =>
+                polygon.id === polygonId
+                    ? { ...polygon, color: polygon.color }
+                    : polygon
+            );
+            state.notify();
+        }
+    });
+}
