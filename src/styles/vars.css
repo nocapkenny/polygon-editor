@@ -3,7 +3,9 @@
     --color-secondary: #578fe3;
     --color-white: #F2F2F2;
     --text-size: 20px;
+    --text-size-mobile: 14px;
     --icon-size: 32px;
+    --icon-size-mobile: 20px;
     --items-spacing: 10px;
     --shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
 }

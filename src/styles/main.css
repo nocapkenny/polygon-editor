@@ -48,3 +48,20 @@
   gap: 30px;
 }
 
+
+
+@media(max-width: 840px){
+  .btn,
+  .text{
+    font-size: var(--text-size-mobile);
+    line-height: 100%;
+  }
+  .btn-icon svg{
+    width: var(--icon-size-mobile);
+    height: var(--icon-size-mobile);
+  }
+  .btn, .btn-icon{
+    padding: 5px 10px;
+  }
+}
+

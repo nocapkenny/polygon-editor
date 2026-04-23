@@ -15,6 +15,11 @@
   align-items: stretch;
   gap: 10px;
 }
+.box {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
 
 .divider {
   width: 4px;
@@ -39,4 +44,23 @@
   border: 3px solid var(--color-white);
   border-radius: 8px;
   cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .divider {
+    display: none;
+  }
+  .line {
+    flex-direction: column;
+    align-items: center;
+  }
+  .color-picker{
+    flex-direction: row;
+  }
+  .color-picker .text{
+    font-size: 10px;
+  }
+  .color-picker input{
+    border-width: 2px;
+  }
 }
